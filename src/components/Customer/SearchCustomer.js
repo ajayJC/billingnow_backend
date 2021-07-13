@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 // import Autosuggest from "react-autosuggest";
-import '../Search.css';
-import billing from '../api/billing';
+import '../../Search.css';
+import billing from '../../api/billing';
 import { connect } from 'react-redux';
-import { addToCart } from '../actions';
+import { addToCart } from '../../actions';
 // import { Input } from "reactstrap";
 
 // const items = [
@@ -25,7 +25,7 @@ function escapeRegexCharacters(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-class SearchItem extends Component {
+class SearchCustomer extends Component {
   state = {
     value: '',
     suggestions: [],
@@ -130,7 +130,7 @@ class SearchItem extends Component {
 
     return (
       <input
-        placeholder='Search Product by code'
+        placeholder='Search Customer by name or phone'
         value={value}
         autoFocus={true}
         className='form-control'
@@ -145,4 +145,4 @@ const mapStateToProps = (state) => {
   return { cart: state.cart, customerType: state.auth.authenticated.user.type };
 };
 
-export default connect(mapStateToProps, { addToCart })(SearchItem);
+export default connect(mapStateToProps, { addToCart })(SearchCustomer);

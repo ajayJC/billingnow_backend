@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-
 import {
   Button,
   FormGroup,
@@ -9,27 +8,148 @@ import {
   Input,
   Table,
   Row,
-  
   Col,
   Label,
-  
 } from 'reactstrap';
+import { connect } from 'react-redux';
 import {
-  searchCustomerByPhone,
+  updateCart,
+  updateCartItem,
+  updateCartModeOfPayment,
+  updateCartTotalAmount,
+  updateCartAmountRepay,
+  updateCartAmountPaid,
+  updateCartDiscount,
+  clearCart,
+  createInvoice,
 } from '../../actions';
+import billing from '../../api/billing';
+import SidebarLayout from '../Layouts/SidebarLayout';
+import Sidebar from '../Sidebar';
+import FullLayout from '../Layouts/FullLayout';
+import SearchProduct from '../SearchProduct';
+import requireAuth from '../../helpers/requireAuth';
+
+
 import Search from '../Search';
 class CreateGst extends Component {
-
   state = {
-    
+    isOpen: false,
     phone: '',
+    phoneError: '',
     name: '',
-
+    
+    message: {
+      headMessage: '',
+      bodyMessage: [],
+      messageColor: '',
+    },
+    latestSales: [],
   };
 
+  handleValue = (item) => {
+    this.setState({ item, itemError: '' });
+  };
   handlePhoneChange = (phone) => {
     this.setState({ phone, phoneError: '' });
   };
+
+  componentDidMount = async () => {
+    // this.props.clearCart();
+    try {
+      const response = await billing.get('last-customers');
+      this.setState({ latestSales: response.data.latestSales });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+
+  getItemFromIdAndCalculatePrice = (idx, value) => {
+    const { items } = this.props.cart;
+    items[idx].qty = Number(value);
+    const itemCost = Number(items[idx].sale_price * items[idx].qty).toFixed(2);
+    items[idx].price = itemCost;
+    // since the object are reference type, passing it to function and changing its value will change original object ie "foundItem"
+    // so passing "foundItem" in calculateItemPrice will change original "foundItem" values
+    // this.calculateItemPrice(foundItem);
+    console.log('items', items);
+    const updatedItems = [...items];
+    this.props.updateCartItem(updatedItems);
+  };
+
+  // renderSearchItem = () =>{
+  //   const { cart } = this.props;
+  //   return cart.items.length ? (
+  //     cart.items.map((item, idx) => (
+  //       <FormGroup>
+  //         <SearchItem />
+  //       </FormGroup>
+  //     ))
+  //   ) : (
+  //     <p>No Item.</p>
+  //   );
+  // };
+
+  updateQty = (e, idx) => {
+    this.getItemFromIdAndCalculatePrice(idx, e.target.value);
+  };
+  
+  removeFromCart = (id) => {
+    const { items } = this.props.cart;
+    const filteredItems = items.filter((item) => item.id !== id);
+    this.props.updateCart(filteredItems);
+  };
+
+  renderTableBody = () => {
+    const { cart } = this.props;
+    return cart.items.length ? (
+      cart.items.map((item, idx) => (
+        <tr key={item.id}>
+          
+          <td>{idx + 1}</td>
+          {/* <td>{item.product_code}</td> */}
+          <td>{item.product_name}</td>
+          <td>
+            <input
+              type='number'
+              className='form-control'
+              min='0'
+              onChange={(e) => this.updateQty(e, idx)}
+              value={item.qty}
+            />
+            {/* <span
+              style={{ color: "red", fontSize: 10 }}
+            >{`${item.qty} remaining`}</span> */}
+          </td>
+          <td></td>
+          {/* <td>{item.mrp}</td> */}
+          {/* <td>{item.discount}</td> */}
+          <td>{item.sale_price}</td>
+          <td>{item.discount}</td>
+          {/* <td>{item.gst + '%'}</td> */}
+          {/* <td>{this.calculatedGst(item)}</td> */}
+          
+          <td>{item.price}</td>
+          <td>
+            <button
+              onClick={() => this.removeFromCart(item.id)}
+              className='btn btn-danger btn-sm'
+            >
+              <i className='fa fa-times' aria-hidden='true'></i>
+            </button>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan='10' className='text-center'>
+          No Item in cart.
+        </td>
+      </tr>
+    );
+  };
+
 
 
     render() {
@@ -140,25 +260,32 @@ class CreateGst extends Component {
               </Row>
               <Row>
                 <Col>
-                    <Button
+                <Button
                         color='success'
-                        className='mt-3'
+                        className='my-4'
                         size='md'
-                        
                         // disabled={cart.total_amount <= 0}
                         onClick={this.handleInvoiceSubmit}
                     >
-                    Add Item{' '}
+                    Add Items{' '}
                     
                   </Button>
+                    <FormGroup className='pt-5'>
+                      <SearchProduct
+                       handleChange={this.handleValue}
+                       intialValue={this.state.name}
+                      />
+                    </FormGroup>
                 </Col>
+                
               </Row>
               <Row 
-                className="mt-4"
+                className="mt-2"
               >
-                <Table>
+                <Table bordered striped>
                     <thead>
                     <tr>
+                        <th>SNo.</th>
                         <th>Item/Product</th>
                         <th>Qty</th>
                         <th></th>
@@ -170,68 +297,8 @@ class CreateGst extends Component {
                     </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><Input
-                                    type=''
-                                    id='invoice_date'
-                                    name=''
-                                    placeholder='Item'
-                                >
-                                </Input></td>
-                                <td><Input
-                                    type=''
-                                    id='invoice_date'
-                                    name=''
-                                    placeholder='Qty'
-                                >
-                                </Input></td>
-                                <td><Input
-                                    type=''
-                                    id='invoice_date'
-                                    name=''
-                                >
-                                </Input></td>
-                                <td><Input
-                                    type=''
-                                    id='invoice_date'
-                                    name=''
-                                >
-                                </Input></td>
-                                <td><InputGroup>
-                                    <InputGroupAddon addonType='prepend'>
-                                      <Input
-                                        type='select'
-                                        id=''
-                                        name=''
-                                      >
-                                        <option>%</option>
-                                        <option>Fixed</option>
-                                      </Input>
-                                    </InputGroupAddon>
-                                    <Input
-                                      id='amount_paid'
-                                      name='amount_paid'
-                                      type=''
-                                    />
-                                  </InputGroup>
-                                    </td>
-                                <td><Input
-                                    type=''
-                                    id='invoice_date'
-                                    name=''
-                                >
-                                </Input></td>
-                                <td><Button
-                                  color='danger'
-                                  className=''
-                                  size='md'
-                                  // disabled={cart.total_amount <= 0}
-                                  //onClick={this.handleInvoiceSubmit}
-                              >
-                              Delete{' '}
-                              
-                            </Button></td>
-                        </tr>
+                      {/* {this.renderSearchItem()} */}
+                      {this.renderTableBody()}
                     </tbody>
                 </Table> 
               </Row>
@@ -456,8 +523,23 @@ class CreateGst extends Component {
                 </Col>
               </Row>
             </div>
+            
         )
     }
 }
 
-export default CreateGst
+const mapStateToProps = (state) => {
+  return { cart: state.cart, customer: state.customer };
+};
+
+export default connect(mapStateToProps, {
+  updateCart,
+  updateCartItem,
+  updateCartModeOfPayment,
+  updateCartTotalAmount,
+  updateCartAmountRepay,
+  updateCartAmountPaid,
+  updateCartDiscount,
+  createInvoice,
+  clearCart,
+})(requireAuth(CreateGst));

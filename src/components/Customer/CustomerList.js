@@ -1,21 +1,64 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import { Link } from "react-router-dom";
 import { Table, Spinner } from "reactstrap";
+
 import billing from "../../api/billing";
 import FullLayout from "../Layouts/FullLayout";
+import Pagination from '../Pagination';
+// import Input from '../Input';
 
-class CustomerList extends Component {
+
+class CustomerList extends Component{
   state = {
     customers: [],
     isLoading: false,
+    pages: [25],
+    page: 0,
+    rowsPerPage: 25,
+    // filterFn: []
+     
+    
   };
+//const [filterFn, setfilterFn] = useState({fn:items => {return items;}})
+  // const [page, setPage] = useState();
 
+  // handleSearch = e => {
+  //   let target = e.target;
+  //   this.filterFn({
+  //     fn:items => {
+  //       if(target.value == "")
+  //         return items;
+  //         else
+  //         return items.filter(x => x.name.includes(target.value))
+  //     }
+  //   })
+  // }
+
+  customersAfterPaging =  () => {
+    return (this.state.customers).slice(this.state.page*this.state.rowsPerPage,(this.state.page+1)*this.state.rowsPerPage)
+};
+
+  updatePage = (newPage) =>{
+  this.setState({page:newPage})
+}
+ 
+
+
+  
+  // state = {  [page, setPage] = React.useState();
+  // const [rowsPerPage, setRowsPerPage] = React.useState();
+  // };
+
+   
+ 
   componentDidMount = async () => {
-    this.setState({ isLoading: true });
+    this.setState({isLoading: true });
     const response = await billing.get("customers");
     this.setState({ customers: response.data.customers, isLoading: false });
+    
   };
 
+  
   renderTableBody = () => {
     const { customers, isLoading } = this.state;
     if (isLoading)
@@ -29,7 +72,7 @@ class CustomerList extends Component {
       <>
         <tbody>
           {customers.length > 0 ? (
-            customers.map((customer, idx) => (
+            this.customersAfterPaging().map((customer, idx) => (
               <tr key={customer.id}>
                 <td>{idx + 1}</td>
                 <td>{customer.name}</td>
@@ -69,8 +112,16 @@ class CustomerList extends Component {
           <h1>Customer List</h1>
         </aside>
         <main key="main" className="card">
+    
           <div className="card-body">
-            <Table bordered striped>
+            
+              {/* <Input
+                label="Search Customer"
+                onChange={this.handleSearch}
+                
+              />
+             */}
+            <Table className="mt-2" bordered striped>
               <thead>
                 <tr>
                   <th>SNo.</th>
@@ -83,7 +134,17 @@ class CustomerList extends Component {
               </thead>
               {this.renderTableBody()}
             </Table>
+            
           </div>
+          <Pagination
+            customers={this.state.customers} 
+            page={this.state.page}
+            pages={this.state.pages}
+            rowsPerPage={this.state.rowsPerPage}
+            customersAfterPaging={this.customersAfterPaging}
+            updatePage={this.updatePage}
+          />
+        
         </main>
       </FullLayout>
     );

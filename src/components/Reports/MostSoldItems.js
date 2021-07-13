@@ -48,6 +48,7 @@ export default function MostSoldItems() {
               <tr key={item.id}>
                 <td>{idx + 1}</td>
                 <td>{item.product_name}</td>
+                <td>{item.rem_qty}</td>
                 <td>{item.count}</td>
               </tr>
             ))
@@ -132,6 +133,7 @@ export default function MostSoldItems() {
               <tr>
                 <th>SNo.</th>
                 <th>Item</th>
+                <th>Remaining Qty.</th>
                 <th>Count</th>
               </tr>
             </thead>

@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-// import Autosuggest from "react-autosuggest";
+import Autosuggest from "react-autosuggest";
 import '../Search.css';
 import billing from '../api/billing';
 import { connect } from 'react-redux';
 import { addToCart } from '../actions';
-// import { Input } from "reactstrap";
+import { Input } from "reactstrap";
 
 // const items = [
 //   {
@@ -25,16 +25,19 @@ function escapeRegexCharacters(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-class SearchItem extends Component {
+class SearchProduct extends Component {
   state = {
-    value: '',
+    value: this.props.intialValue,
     suggestions: [],
   };
 
-  onChange = (e) => {
-    this.setState({
-      value: e.target.value,
-    });
+  onChange = (event, { newValue }) => {
+    this.setState(
+      {
+        value: newValue,
+      },
+      this.props.handleChange(newValue)
+    );
   };
 
   handleKeyDown = async (e) => {
@@ -73,14 +76,16 @@ class SearchItem extends Component {
     return this.state.suggestions.filter(
       (item) => regex.test(item.product_name) || regex.test(item.product_code)
     );
-  }
+  };
 
-  getSuggestionValue(suggestion) {
+  
+  getSuggestionValue = (suggestion) => {
+    this.props.handleChange(suggestion.product_name);
     return suggestion.product_name;
-  }
+  };
 
   renderSuggestion(suggestion) {
-    return <span>{suggestion.product_name}</span>;
+    return <span>{suggestion.product_name}, {suggestion.product_code}</span>;
   }
 
   onSuggestionsFetchRequested = async ({ value }) => {
@@ -95,9 +100,9 @@ class SearchItem extends Component {
       console.log(err);
     }
 
-    // this.setState({
-    //   suggestions: this.getSuggestions(value),
-    // });
+    this.setState({
+      suggestions: this.getSuggestions(value),
+    });
   };
 
   onSuggestionsClearRequested = () => {
@@ -108,36 +113,36 @@ class SearchItem extends Component {
 
   render() {
     const { value, suggestions } = this.state;
-    // const inputProps = {
-    //   placeholder: "Search product by code or name",
-    //   value,
-    //   autoFocus: true,
-    //   className: "form-control",
-    //   onChange: this.onChange,
-    //   onKeyDown: this.handleKeyDown,
-    // };
-
-    // return (
-    //   <Autosuggest
-    //     suggestions={suggestions}
-    //     onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-    //     onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-    //     getSuggestionValue={this.getSuggestionValue}
-    //     renderSuggestion={this.renderSuggestion}
-    //     inputProps={inputProps}
-    //   />
-    // );
+    const inputProps = {
+      placeholder: "Search product by code or name",
+      value,
+      autoFocus: true,
+      className: "form-control",
+      onChange: this.onChange,
+      onKeyDown: this.handleKeyDown,
+    };
 
     return (
-      <input
-        placeholder='Search Product by code'
-        value={value}
-        autoFocus={true}
-        className='form-control'
-        onChange={this.onChange}
-        onKeyDown={this.handleKeyDown}
+      <Autosuggest
+        suggestions={suggestions}
+        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+        getSuggestionValue={this.getSuggestionValue}
+        renderSuggestion={this.renderSuggestion}
+        inputProps={inputProps}
       />
     );
+
+    // return (
+    //   <input
+    //     placeholder='Search Product'
+    //     value={value}
+    //     autoFocus={true}
+    //     className='form-control'
+    //     onChange={this.onChange}
+    //     onKeyDown={this.handleKeyDown}
+    //   />
+    // );
   }
 }
 
@@ -145,4 +150,4 @@ const mapStateToProps = (state) => {
   return { cart: state.cart, customerType: state.auth.authenticated.user.type };
 };
 
-export default connect(mapStateToProps, { addToCart })(SearchItem);
+export default connect(mapStateToProps, { addToCart })(SearchProduct);

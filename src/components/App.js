@@ -21,6 +21,7 @@ import AddItem from './Item/AddItem';
 import EditItem from './Item/EditItem';
 import ItemList from './Item/ItemList';
 import CreateGST from './GST/CreateGST';
+// import Pagination from './Pagination';
 
 
 
@@ -41,7 +42,7 @@ class App extends Component {
             path='/daily-purchase-report'
             component={DailyPurchase}
           />
-          
+          {/* <Route exact path='/Pagination' component={Pagination} /> */}
           <Route exact path='/daily-sale-report' component={DailySale} />
           <Route exact path='/sale-profit' component={SaleProfit} />
           <Route exact path='/customers' component={CustomerList} />
